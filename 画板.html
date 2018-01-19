@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang='zh'>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>画板</title>
+		<style>
+			* {
+				padding: 0;
+				margin: 0;
+				text-align: center;
+			}
+		
+			#mc {
+				background: dodgerblue;
+				display: block;
+				margin: 0 auto;
+			}
+			
+			div{
+				margin: 0 auto;
+				
+			}
+			input {
+				display: inline-block;
+				width: 100px;
+				height: 50px;
+				cursor: pointer;
+				margin-left: 50px;
+				margin-top: 50px;
+				background: lightgray;
+				font-weight: bolder;
+			}
+		</style>
+	</head>
+
+	<body>
+		<canvas id="mc" width="1000" height="600">您的浏览器不支持canvas,请升级!</canvas>
+		<div>
+			<input type="button" value="红" id="inp1">
+			<input type="button" value="绿" id="inp2">
+			<input type="button" value="蓝" id="inp3">
+			<input type="button" value="黑" id="inp4"><br />
+			<input type="button" value="橡皮擦" id="inp5">
+			<input type="button" value="全部清除" id="inp6">
+			<input type="button" value="圆" id="inp7">
+			<input type="button" value="矩形填充" id="inp8"><br />			
+			<input type="button" value="矩形" id="inp10"><br />
+			<input class='yanse' type="color" id="inp9" >
+			<input type="range" id ="inp11" min ='1' max ='10' />
+		</div>
+	</body>
+	<script type="text/javascript">
+		window.onload = function() {
+			var mc = document.querySelector('#mc');
+			var mc = document.querySelector('#mc');
+			var inp9 = document.querySelector('#inp9');
+			var inp11 = document.querySelector('#inp11');
+			var inp = document.getElementsByTagName('input');
+			var ctx = mc.getContext('2d'); //获取画笔
+
+			for(var i = 0; i < inp.length; i++) {
+				inp[i].onclick = function(e) {
+//					console.log(inp[i]);
+					var e = event || window.event;
+					var ID = this.getAttribute('id');
+					switch(ID) {
+						case 'inp1':
+							draw();
+							ctx.lineWidth = lagan;
+							ctx.strokeStyle = 'mediumvioletred';
+							break;
+						case 'inp2':
+							draw();
+							ctx.lineWidth = lagan;
+							ctx.strokeStyle = 'greenyellow';
+							break;
+						case 'inp3':
+							draw();
+							ctx.lineWidth = lagan;
+							ctx.strokeStyle = 'blueviolet';
+							break;
+						case 'inp4':
+							draw();
+							ctx.lineWidth = lagan;
+							ctx.strokeStyle = 'black';
+							break;
+						case 'inp5':							
+							clear();
+							ctx.fillStyle = 'dodgerblue';
+							break;
+						case 'inp6':
+							ctx.clearRect(0,0,1000,600);
+							break;
+						case 'inp7':
+							yuan();
+							break;
+						case 'inp8':
+							juxing();
+							break;
+						case 'inp10':
+							juxing1();						
+							break;
+					}
+				}
+			}
+
+			//划线
+			function draw() {
+				mc.onmousedown = function(e) {
+					var e = event || window.event;
+					ctx.beginPath();
+					ctx.moveTo(e.clientX - mc.offsetLeft, e.clientY - mc.offsetTop);
+					mc.onmousemove = function(e) {
+						var e = event || window.event;
+						ctx.lineTo(e.clientX - mc.offsetLeft, e.clientY - mc.offsetTop);
+						ctx.stroke();
+					}
+					mc.onmouseup = function(e) {
+						mc.onmousemove = null;
+						mc.onmouseup = null;
+						ctx.closePath();
+					}
+				}
+			}
+			
+			//橡皮擦
+			function clear(){
+					mc.onmousedown = function(e) {
+					var e = event || window.event;
+					ctx.beginPath();
+					mc.onmousemove = function(e) {						
+							ctx.arc(e.clientX - mc.offsetLeft,e.clientY - mc.offsetTop, 50, 0, 2 * Math.PI);
+							ctx.fill();
+					}
+					mc.onmouseup = function(e) {
+						mc.onmousemove = null;
+						mc.onmouseup = null;
+						ctx.closePath();
+					}
+				}
+			}
+
+			//圆填充
+			function yuan(){
+					mc.onmousedown = function(e) {
+					var e = event || window.event;
+					var startX = e.clientX - mc.offsetLeft;
+					var startY= e.clientY - mc.offsetTop;					
+					mc.onmousemove = function(e) {	
+						var e= event ||window.event;
+						var endX = e.clientX - mc.offsetLeft;
+						var endY= e.clientY - mc.offsetTop;
+						//计算圆心位置
+						x = startX+(endX-startX)/2;
+						y = startY+(endY-startY)/2;
+						//计算半径
+						var z =Math.sqrt(Math.pow(endX-startX,2)+Math.pow(endY-startY,2))/2;						
+						ctx.beginPath();
+						ctx.fillStyle = yanse;
+						ctx.arc(x,y,z,0,Math.PI *2);
+						ctx.closePath();
+						ctx.fill();//开始绘制
+					}
+					mc.onmouseup = function(e) {
+						mc.onmousemove = null;
+						mc.onmouseup = null;
+						ctx.closePath();
+					}
+				}
+			}
+
+			//矩形填充
+			function juxing(){				
+				mc.onmousedown = function(e){
+					var e = event || window.event;
+					var startX = e.clientX - mc.offsetLeft;
+					var startY= e.clientY - mc.offsetTop;
+					mc.onmousemove = function(b){
+						var b= event ||window.event;
+						var endX = b.clientX - mc.offsetLeft;
+						var endY= b.clientY - mc.offsetTop;
+						//计算矩形宽高
+						x = endX - startX;
+						y = endY - startY;
+						ctx.beginPath();
+						ctx.fillStyle = yanse;
+						ctx.fillRect(startX,startY,x,y);
+						ctx.closePath();
+						ctx.fill();//开始绘制
+					}
+					mc.onmouseup = function(){
+						mc.onmousemove = null;
+						mc.onmouseup = null;
+						ctx.closePath();
+					}
+				}
+			}
+			
+			//矩形框
+			function juxing1(){				
+				mc.onmousedown = function(e){
+//					ctx.clearRect(0,0,1000,600);
+					var e = event || window.event;
+					var startX = e.clientX - mc.offsetLeft;
+					var startY= e.clientY - mc.offsetTop;
+					mc.onmousemove = function(b){
+//						ctx.clearRect(0,0,1000,600);
+						var b= event ||window.event;
+						var endX = b.clientX - mc.offsetLeft;
+						var endY= b.clientY - mc.offsetTop;
+						//计算矩形宽高
+						x = endX - startX;
+						y = endY - startY;
+						ctx.beginPath();
+						ctx.strokeStyle = yanse;
+						ctx.strokeRect(startX,startY,x,y);
+						ctx.closePath();
+						ctx.stroke();
+						
+						ctx.beginPath();
+						ctx.fillStyle = 'dodgerblue';
+						ctx.fillRect(startX+1,startY+1,x-2,y-2);
+						ctx.closePath();
+						ctx.fill();//开始绘制
+						
+					}
+					
+					mc.onmouseup = function(){
+						
+						mc.onmousemove = null;
+						mc.onmouseup = null;
+						ctx.closePath();
+					}
+				}
+			}			
+			//点击颜色，获取value值
+			var yanse;	
+			inp9.onchange = function(){
+				yanse = this.value;
+			}
+			//点击拉杆
+			var lagan;	
+			inp11.onchange = function(){
+				lagan = this.value;				
+			}
+
+
+
+
+
+		}
+	</script>
+
+</html>
