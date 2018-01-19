@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang='zh'>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>超级弹球</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+			}			
+			body {
+				background: url(img/4.png);
+			}			
+			#mc {
+				background: url(img/2.png);
+				background-size: 1000px 700px;
+				display: block;
+				margin: 0 auto;
+				box-shadow: 0 0 50px antiquewhite;
+				margin-left: 500px;
+				margin-top: 100px;
+				border-radius:20px ;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="mc" width="1000" height="800">您的浏览器不支持canvas,请升级!</canvas>
+		<audio src="audio/musicccc.mp3" id ="music"></audio>
+		<audio src="audio/1.mp3" id ="music1"></audio
+	</body>
+<script type="text/javascript">
+	var music = document.querySelector('#music');
+	var music1 = document.querySelector('#music1');
+	var mc = document.querySelector('#mc');
+	var ctx = mc.getContext('2d');	
+	var score = 0;//分数，初始值为0；	
+	var DiamondArr =[];//方块的数组	
+	var minX = 8,maxX = mc.width-8;
+	var minY = 200,maxY = mc.height-100;
+	//鼠标基于canvas的X轴坐标（绘制白色块及子弹）
+	var mouseX = mc.width / 2;
+	//给小球和白板设置初始位置
+	var newBall = {
+		x : -1,
+		y : -1
+	};//实例化的小球
+	var newBoard ={
+		x : mouseX,
+		y : 750
+	};// 实例化的板
+	
+	//随机数
+	function rn(x, y) {
+			return Math.round(Math.random() * (y - x) + x);
+		}
+	//随机颜色
+	function color(){
+		var r = rn(30,255);
+		var g = rn(30,255);
+		var b = rn(30,255);
+		return "rgb(" + r + "," + g + ","  + b + ")";
+	}
+	//开始页面	
+	function drawStartPage() {
+		var img = new Image();//Image类
+		img.src = 'img/3.jpg';
+		img.onload = function(){						
+			ctx.drawImage(img,0,50,1000,700);	
+			//文字
+			ctx.save();
+			ctx.beginPath();
+			ctx.font = '70px impact';
+			ctx.fillStyle = 'palevioletred';
+			ctx.shadowOffsetX = 0; 
+			ctx.shadowOffsetY = 0;
+			ctx.shadowBlur = 8;
+			ctx.shadowColor = 'darkslateblue';
+			ctx.fillText('点击任意位置开启游戏', 180, 500);
+			ctx.restore();
+		}			
+	}
+	drawStartPage();
+	
+	//方块的类
+	function Diamond(x,y){
+		this.x = x;
+		this.y = y;
+		this.color = "rgb(" + rn(30,255) + "," +rn(30,255) + ","  + rn(30,255) + ")";
+	}
+	Diamond.prototype.move = function(){
+		ctx.beginPath();	
+		ctx.fillStyle = this.color;
+		ctx.fillRect(this.x,this.y,100,50);
+		ctx.fill();	
+	}
+	//创建块
+	function createDiamond(){
+		var num = mc.width/100;
+		for(var i =0;i<num;i++){
+			var x = 0 + 100*i;//计算每行的x坐标
+			for(var j=0;j<num/2;j++){
+				var y = 0 +40*j;//计算每行的y坐标
+				var newdiamond = new Diamond(x,y);
+				DiamondArr.push(newdiamond);
+			}
+		}
+	}	
+		
+	
+	//小球的类
+	function Ball(x,y){
+		this.x = x;
+		this.y = y;
+		this.r = 15;
+		this.vx = 8;
+		this.vy = 8;
+	}
+	Ball.prototype.move = function(){
+		//碰壁反弹
+		if(this.x<this.r || this.x >mc.width-this.r){
+			this.vx *= -1;
+		}
+		if(this.y <0){
+			this.vy *= -1;
+		}
+		//改变圆心位置
+		this.x += this.vx;
+		this.y += this.vy;
+		//绘制
+		ctx.beginPath();		
+		var g1 = ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,25)
+		g1.addColorStop('0','red');
+		g1.addColorStop('0.2','blue');
+		g1.addColorStop('0.6','pink');
+        g1.addColorStop('1','yellow');
+		ctx.fillStyle =g1;
+		ctx.arc(this.x,this.y,this.r,0,2*Math.PI);
+		ctx.fill();		
+	}	
+	//实例化小球
+	function createBall(){
+		var x = rn(minX,maxX);
+		var y = rn(minY,maxY);
+		newBall =  new Ball(x,y);
+	}
+	
+	//球碰撞白板
+	function judgeHit(){
+		if(newBall.x-15 <= newBoard.x+75+9 && newBall.x+15 >= newBoard.x-9-75 && newBall.y+15 >=newBoard.y-9 && newBall.y-15 <=newBoard.y+25+9){
+			newBall.vy *= -1;
+		}
+		//左上角
+		if (newBall.x+10 < newBoard.x && newBoard.y > newBall.y+10 ) {
+			var h1 =  Math.sqrt(Math.pow(newBall.x+10-newBoard.x,2)+Math.pow(newBoard.y-newBall.y+10,2));
+			if(h1 <=24){
+				newBall.vy *= -1;
+				newBall.vx *= -1;
+			}
+		}
+		//右上角
+		if(newBall.x-10 > newBoard.x+150+9 &&  newBoard.y > newBall.y+10){
+			var h2 =  Math.sqrt(Math.pow(newBall.x1-10-newBoard.x+159,2)+Math.pow(newBoard.y-newBall.y+10,2));
+			if(h2 <=24){
+				newBall.vy *= -1;
+				newBall.vx *= -1;
+			}
+		}
+		
+		
+		if(newBall.y>mc.height+75){
+			//游戏结束调用函数
+			gameover();			
+		}
+	}
+	
+	
+	
+	
+	var timer;
+	//球碰撞方块
+	function judgeHit2(){
+		for(var i =0;i<DiamondArr.length;i++){
+			if(newBall.x +10>= DiamondArr[i].x && newBall.x-10 <= DiamondArr[i].x+100 && newBall.y-10 <= DiamondArr[i].y+50 && newBall.y+10 >= DiamondArr[i].y){
+				//移出显示块
+				DiamondArr.splice(i,1);	
+//				console.log(DiamondArr);
+				i--;
+				score += 10;
+				if(DiamondArr.length ==0){
+					gameover();
+				}				
+				newBall.vy *= -1;
+			}	 			 		
+		}
+	}
+	
+	//板的类
+	function Board(x){
+		this.x = x;	
+		this.y = 750;	
+	}
+	Board.prototype.move = function(){		
+		if(this.x > mc.width - 75) {
+			this.x= mc.width - 75;				
+		}
+		if(this.x < 75) {
+			this.x = 75;
+		}	
+			ctx.save();
+			ctx.beginPath();	
+			ctx.fillStyle = 'red';
+			ctx.lineJoin ='round';
+			ctx.lineWidth = 9;
+			ctx.strokeStyle ='red';
+			ctx.strokeRect(this.x - 75, 750,150,25);
+			ctx.fillRect(this.x - 75, 750, 150, 25);
+			ctx.fill();	
+			ctx.restore();
+	}
+	//实例化板
+	function createBoard(){
+		newBoard=  new Board(mouseX);
+		newBoard.move();//白板
+	}
+	
+	//绘制分数
+	function drawScore(){
+		ctx.beginPath();
+		ctx.font = '25px Arial';
+		ctx.fillStyle = 'red';
+		ctx.fillText('分数:'+score,20,20);
+	}
+	
+
+	//游戏开关
+	var gamefalg =0;
+	mc.onclick = function(){		
+//		window.cancelAnimationFrame(a);	//再次点击后先暂停计时器
+		if(gamefalg == 0){
+			mc.onmousemove = function(e){
+//			ctx.clearRect(0,0,1000,800);	
+			var e = event || window.event;
+			mouseX = e.clientX - mc.offsetLeft;											
+		}				
+				createDiamond();//创建块
+				createBall();//小球
+				animation();//计时器	
+				music1.pause();//音乐关
+				music.play();//音乐起
+				gamefalg = 1;
+		} 	
+//		if(gamefalg == 2){				
+//				ctx.clearRect(0,0,1000,800);				
+//				drawStartPage();
+//				console.log(121);
+//			
+//			gamefalg = 0;
+//		
+//		}
+	}
+
+	
+window.requestAnimationFrame =
+   window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame 
+                                || window.msRequestAnimationFrame;
+	 
+	//频率计时器	
+	var a ;
+	function animation(){
+			ctx.clearRect(0,0,1000,800);	
+			window.cancelAnimationFrame(a);	//再次点击后先暂停计时器
+			//方块
+	 		for(var m =0;m<DiamondArr.length;m++){
+	 			DiamondArr[m].move();
+			 }	
+			drawScore();//计分
+			newBall.move();//创建小球
+			createBoard();//创建白板		
+			judgeHit();	//白板与球碰撞
+			judgeHit2();//块与球碰撞
+			console.log(newBall.vy);			
+		 a = window.requestAnimationFrame(animation);	
+	}
+	
+
+	//结束页面
+	function gameover(){		
+		//清除画布上的事件		
+		mc.onmousemove = null;
+		newBall.vy = 0;
+		newBall.vx = 0;		
+		//清除画布
+		ctx.clearRect(0,0,1000,800);	
+		//绘制得分
+		ctx.save();
+		ctx.beginPath();
+		ctx.font = '60px impact';
+		ctx.shadowOffsetX = 0; 
+		ctx.shadowOffsetY = 0;
+		ctx.shadowBlur = 8;
+		ctx.shadowColor = 'dodgerblue';
+		ctx.fillStyle = 'yellow';		
+		ctx.fillText('最终分数'+score,350,330);
+		ctx.restore();
+		
+		//游戏结束		
+        ctx.beginPath();
+   		ctx.font = "100px impact";
+		ctx.fillStyle = "red";
+		ctx.shadowOffsetX = 0;
+		ctx.shadowOffsetY = 0;
+		ctx.shadowColor = "rgb(51, 212, 10)";
+		ctx.shadowBlur = 5;
+		ctx.fillText("GAME OVER",280,200);
+		ctx.fill();
+		ctx.restore();
+		//初始所有数据
+		score =   -10;
+		DiamondArr =[];//方块的数组
+		music.pause();
+		music1.play();
+		
+		gamefalg = 0;		
+		
+	}
+	
+	
+</script>
+</html>
